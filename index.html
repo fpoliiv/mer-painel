@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MeR — Painel de Marketing</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a0a;
+  --surface:#111111;
+  --card:#1a1a1a;
+  --border:#2a2a2a;
+  --gold:#f5c518;
+  --gold-dark:#c9a000;
+  --gold-light:#ffd700;
+  --text:#f0f0f0;
+  --muted:#666;
+  --muted2:#444;
+  --green:#22c55e;
+  --yellow:#eab308;
+  --red:#ef4444;
+  --blue:#3b82f6;
+  --sem:#f5c518;
+  --rep:#f97316;
+  --loc:#06b6d4;
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--gold-dark);border-radius:3px;}
+
+/* HEADER */
+header{
+  background:linear-gradient(135deg,#0a0a0a 0%,#1a1600 100%);
+  border-bottom:2px solid var(--gold-dark);
+  padding:0 28px;
+  height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:200;
+}
+.logo-area{display:flex;align-items:center;gap:16px;}
+.logo-text{
+  font-size:1.5rem;font-weight:900;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:2px;
+}
+.logo-sub{font-size:.7rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:-4px;}
+.header-right{display:flex;flex-direction:column;align-items:flex-end;gap:2px;}
+#hdata{font-size:.75rem;color:var(--muted);}
+#hclock{font-size:1rem;font-weight:700;color:var(--gold);}
+
+/* NAV */
+nav{
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;gap:2px;padding:0 24px;
+  overflow-x:auto;position:sticky;top:64px;z-index:190;
+}
+.nav-btn{
+  background:none;border:none;color:var(--muted);
+  padding:16px 22px;cursor:pointer;font-size:.82rem;font-weight:700;
+  border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;
+  text-transform:uppercase;letter-spacing:1px;
+}
+.nav-btn:hover{color:var(--text);}
+.nav-btn.ativo{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* PÁGINAS */
+.page{display:none;padding:24px;max-width:1400px;margin:0 auto;}
+.page.ativa{display:block;}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.card-title{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* GRIDS */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+.full{grid-column:1/-1;}
+
+/* BADGES EMPRESA */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.65rem;font-weight:800;padding:3px 10px;border-radius:4px;text-transform:uppercase;letter-spacing:.5px;}
+.badge-sem{background:rgba(245,197,24,.12);color:var(--sem);border:1px solid rgba(245,197,24,.3);}
+.badge-rep{background:rgba(249,115,22,.12);color:var(--rep);border:1px solid rgba(249,115,22,.3);}
+.badge-loc{background:rgba(6,182,212,.12);color:var(--loc);border:1px solid rgba(6,182,212,.3);}
+
+/* STATUS BADGES */
+.s-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;text-transform:uppercase;}
+.s-entrada{background:rgba(59,130,246,.15);color:var(--blue);}
+.s-fotos{background:rgba(245,197,24,.15);color:var(--gold);}
+.s-videos{background:rgba(249,115,22,.15);color:var(--rep);}
+.s-boom{background:rgba(139,92,246,.15);color:#a78bfa;}
+.s-instagram{background:rgba(236,72,153,.15);color:#ec4899;}
+.s-campanha{background:rgba(34,197,94,.15);color:var(--green);}
+.s-vendido{background:rgba(100,116,139,.15);color:var(--muted);}
+
+/* STAT CARDS */
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center;position:relative;overflow:hidden;}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));}
+.stat-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.stat-val{font-size:1.7rem;font-weight:900;color:var(--gold);}
+.stat-sub{font-size:.65rem;color:var(--muted);margin-top:4px;}
+
+/* PROGRESS */
+.prog-wrap{background:var(--bg);border-radius:20px;height:6px;overflow:hidden;margin:6px 0 4px;}
+.prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,var(--gold-dark),var(--gold));transition:width .4s ease;}
+.prog-lbl{font-size:.72rem;color:var(--muted);}
+
+/* TAREFAS */
+.task-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-bottom:5px;transition:all .2s;}
+.task-item:hover{border-color:var(--gold-dark);}
+.task-item.done{opacity:.35;}
+.task-item.done .tnome{text-decoration:line-through;color:var(--muted);}
+.task-item input[type=checkbox]{accent-color:var(--gold);width:15px;height:15px;cursor:pointer;flex-shrink:0;}
+.tnome{flex:1;font-size:.85rem;}
+.ttipo{font-size:.65rem;color:var(--muted);background:var(--surface);padding:2px 7px;border-radius:3px;white-space:nowrap;}
+
+/* NOTAS */
+textarea.nota{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;padding:12px;resize:vertical;min-height:90px;outline:none;font-family:inherit;line-height:1.6;}
+textarea.nota:focus{border-color:var(--gold);}
+
+/* FORMS */
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:120px;}
+.fg label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+input[type=text],input[type=number],input[type=date],select,textarea.fi{
+  background:var(--bg);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:9px 12px;font-size:.85rem;outline:none;font-family:inherit;width:100%;
+}
+input:focus,select:focus,textarea.fi:focus{border-color:var(--gold);}
+select option{background:var(--card);}
+
+/* BOTÕES */
+.btn{background:var(--gold);color:#000;border:none;border-radius:8px;padding:9px 18px;cursor:pointer;font-size:.82rem;font-weight:800;transition:all .2s;white-space:nowrap;letter-spacing:.5px;}
+.btn:hover{background:var(--gold-light);transform:translateY(-1px);}
+.btn-out{background:none;border:1px solid var(--border);color:var(--muted);}
+.btn-out:hover{border-color:var(--gold);color:var(--gold);background:none;transform:none;}
+.btn-danger{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2);}
+.btn-danger:hover{background:rgba(239,68,68,.2);transform:none;}
+.btn-sm{padding:5px 12px;font-size:.72rem;}
+.btn-xs{padding:3px 8px;font-size:.65rem;}
+
+/* SEÇÃO HEADER */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.sh-title{font-size:1rem;font-weight:800;color:var(--text);}
+
+/* ABAS DE EMPRESA */
+.empresa-tabs{display:flex;gap:2px;margin-bottom:20px;background:var(--surface);padding:4px;border-radius:10px;border:1px solid var(--border);}
+.etab{flex:1;background:none;border:none;padding:10px;cursor:pointer;font-size:.78rem;font-weight:700;color:var(--muted);border-radius:8px;transition:all .2s;text-transform:uppercase;letter-spacing:1px;}
+.etab.ativo{color:#000;}
+.etab.ativo.sem{background:var(--gold);}
+.etab.ativo.rep{background:var(--rep);}
+.etab.ativo.loc{background:var(--loc);}
+
+/* KANBAN */
+.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;}
+.k-col{min-width:220px;flex:1;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.k-col-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.k-col-title{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;}
+.k-count{background:var(--border);color:var(--muted);font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;}
+.k-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px;cursor:pointer;transition:all .2s;border-left:3px solid var(--border);}
+.k-card:hover{border-color:var(--gold-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.4);}
+.k-card.sem{border-left-color:var(--sem);}
+.k-card.rep{border-left-color:var(--rep);}
+.k-card.loc{border-left-color:var(--loc);}
+.k-nome{font-size:.85rem;font-weight:700;margin-bottom:4px;}
+.k-placa{font-size:.7rem;color:var(--muted);}
+.k-valor{font-size:.78rem;color:var(--gold);margin-top:6px;font-weight:700;}
+.k-actions{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap;}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.aberto{display:flex;}
+.modal{background:var(--card);border:1px solid var(--gold-dark);border-radius:16px;padding:28px;width:100%;max-width:580px;max-height:90vh;overflow-y:auto;}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.modal-title{font-size:1rem;font-weight:800;color:var(--gold);}
+.modal-close{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;transition:color .2s;}
+.modal-close:hover{color:var(--text);}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.required-mark{color:var(--red);margin-left:2px;}
+
+/* CAMPANHAS TABELA */
+.camp-table{width:100%;border-collapse:collapse;font-size:.78rem;}
+.camp-table th{text-align:left;padding:8px 10px;color:var(--muted);font-size:.65rem;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);}
+.camp-table td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.camp-table tr:last-child td{border-bottom:none;}
+.camp-table tr:hover td{background:rgba(245,197,24,.03);}
+.camp-table .num{text-align:right;}
+.metric-highlight{color:var(--gold);font-weight:700;}
+
+/* RELATÓRIO */
+.rel-bloco{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;}
+.rel-bloco h3{font-size:.68rem;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.rel-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:.82rem;}
+.rel-row:last-child{border-bottom:none;}
+.rel-row span:last-child{font-weight:800;color:var(--gold);}
+.rel-empresa-section{margin-bottom:20px;}
+.rel-empresa-title{font-size:.85rem;font-weight:800;margin-bottom:10px;padding:8px 12px;border-radius:6px;}
+
+/* VAZIO */
+.empty{text-align:center;color:var(--muted);font-size:.82rem;padding:32px;font-style:italic;}
+
+/* UTIL */
+.mt16{margin-top:16px;}
+.mt20{margin-top:20px;}
+.gap16{display:flex;flex-direction:column;gap:16px;}
+.gap20{display:flex;flex-direction:column;gap:20px;}
+.flex{display:flex;}
+.ic{align-items:center;}
+.jb{justify-content:space-between;}
+.g8{gap:8px;}
+.g6{gap:6px;}
+
+/* FILTROS */
+.filtros{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.fb{background:var(--surface);border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:5px 14px;font-size:.72rem;cursor:pointer;transition:all .2s;}
+.fb.ativo{background:var(--gold);color:#000;border-color:var(--gold);font-weight:700;}
+
+/* METRICS MINI GRID */
+.m-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;}
+.m-mini{background:var(--bg);border-radius:6px;padding:8px;text-align:center;border:1px solid var(--border);}
+.m-lbl{font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
+.m-val{font-size:.88rem;font-weight:700;color:var(--text);margin-top:3px;}
+
+@media(max-width:900px){.g3,.g4{grid-template-columns:1fr 1fr;}.kanban{flex-direction:column;}}
+@media(max-width:600px){.g2,.g3,.g4{grid-template-columns:1fr;}.page{padding:14px;}.m-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-area">
+    <div>
+      <div class="logo-text">MeR</div>
+      <div class="logo-sub">Marketing Dashboard</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="hdata"></div>
+    <div id="hclock"></div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn ativo" onclick="ir('dia',this)">📋 Dia a Dia</button>
+  <button class="nav-btn" onclick="ir('veiculos',this)">🚘 Veículos</button>
+  <button class="nav-btn" onclick="ir('campanhas',this)">📊 Campanhas</button>
+  <button class="nav-btn" onclick="ir('relatorio',this)">📄 Relatório</button>
+</nav>
+
+<!-- ═══════════════════════ DIA A DIA ═══════════════════════ -->
+<div class="page ativa" id="page-dia">
+
+  <div class="card" style="margin-bottom:20px;">
+    <div class="flex ic jb">
+      <div style="flex:1">
+        <div class="prog-lbl" id="prog-lbl">Carregando tarefas...</div>
+        <div class="prog-wrap"><div class="prog-fill" id="prog-bar" style="width:0%"></div></div>
+      </div>
+      <button class="btn btn-out btn-sm" style="margin-left:16px" onclick="resetDia()">↺ Resetar dia</button>
+    </div>
+  </div>
+
+  <!-- ABAS DE EMPRESA -->
+  <div class="empresa-tabs">
+    <button class="etab sem ativo" onclick="setEmpresaDia('sem',this)">🏢 MeR Seminovos</button>
+    <button class="etab rep" onclick="setEmpresaDia('rep',this)">🔄 MeR Repasses</button>
+    <button class="etab loc" onclick="setEmpresaDia('loc',this)">🚗 MeR Locadora</button>
+  </div>
+
+  <div class="g2" style="align-items:start">
+    <div class="card">
+      <div class="card-title">✅ Checklist</div>
+      <div id="checklist-container"></div>
+    </div>
+
+    <div class="gap16">
+      <div class="card">
+        <div class="card-title">⚡ Métricas Rápidas do Dia</div>
+        <div class="g2" style="gap:10px">
+          <div class="stat-card">
+            <div class="stat-lbl">Leads</div>
+            <input type="number" id="m-leads" placeholder="0" oninput="saveMD()" style="background:none;border:none;color:var(--gold);font-size:1.5rem;font-weight:900;text-align:center;width:100%;outline:none;"/>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Mensagens</div>
+            <input type="number" id="m-msgs" placeholder="0" oninput="saveMD()" style="background:none;border:none;color:var(--gold);font-size:1.5rem;font-weight:900;text-align:center;width:100%;outline:none;"/>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Stories</div>
+            <input type="number" id="m-stories" placeholder="0" oninput="saveMD()" style="background:none;border:none;color:var(--gold);font-size:1.5rem;font-weight:900;text-align:center;width:100%;outline:none;"/>
+          </div>
+          <div class="stat-card">
+            <div class="stat-lbl">Anúncios</div>
+            <input type="number" id="m-anuncios" placeholder="0" oninput="saveMD()" style="background:none;border:none;color:var(--gold);font-size:1.5rem;font-weight:900;text-align:center;width:100%;outline:none;"/>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📝 Notas do Dia</div>
+        <textarea class="nota" id="notas-dia" placeholder="Observações, insights, ideias..." oninput="saveNotas()"></textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ VEÍCULOS ═══════════════════════ -->
+<div class="page" id="page-veiculos">
+
+  <div class="sh">
+    <span class="sh-title">🚘 Funil de Veículos</span>
+    <button class="btn btn-sm" onclick="abrirModalVeic()">+ Novo Veículo</button>
+  </div>
+
+  <!-- ABAS EMPRESA -->
+  <div class="empresa-tabs">
+    <button class="etab sem ativo" onclick="setEmpresaVeic('sem',this)">MeR Seminovos</button>
+    <button class="etab rep" onclick="setEmpresaVeic('rep',this)">MeR Repasses</button>
+    <button class="etab loc" onclick="setEmpresaVeic('loc',this)">MeR Locadora</button>
+    <button class="etab" style="max-width:100px" onclick="setEmpresaVeic('all',this)">Todos</button>
+  </div>
+
+  <!-- RESUMO -->
+  <div class="g4" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-lbl">Em Estoque</div><div class="stat-val" id="v-estoque">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Fotos Feitas</div><div class="stat-val" id="v-fotos">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Vídeos</div><div class="stat-val" id="v-videos">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">No Boom</div><div class="stat-val" id="v-boom">0</div></div>
+  </div>
+
+  <!-- KANBAN -->
+  <div class="kanban" id="kanban-board"></div>
+</div>
+
+<!-- ═══════════════════════ CAMPANHAS ═══════════════════════ -->
+<div class="page" id="page-campanhas">
+
+  <div class="sh">
+    <span class="sh-title">📊 Campanhas — Tráfego Pago</span>
+    <button class="btn btn-sm" onclick="abrirModalCamp()">+ Registrar Métricas</button>
+  </div>
+
+  <!-- ABAS EMPRESA -->
+  <div class="empresa-tabs">
+    <button class="etab sem ativo" onclick="setEmpresaCamp('sem',this)">MeR Seminovos</button>
+    <button class="etab rep" onclick="setEmpresaCamp('rep',this)">MeR Repasses</button>
+    <button class="etab loc" onclick="setEmpresaCamp('loc',this)">MeR Locadora</button>
+    <button class="etab" style="max-width:100px" onclick="setEmpresaCamp('all',this)">Todas</button>
+  </div>
+
+  <!-- TOTAIS 30 DIAS -->
+  <div class="g4" style="margin-bottom:20px">
+    <div class="stat-card"><div class="stat-lbl">Alcance (30d)</div><div class="stat-val" id="t-alcance">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Conv. Iniciadas (30d)</div><div class="stat-val" id="t-conv">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Custo/Conversa (30d)</div><div class="stat-val" id="t-cpc">R$0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Gasto Total (30d)</div><div class="stat-val" id="t-gasto">R$0</div></div>
+  </div>
+
+  <!-- TABELA -->
+  <div class="card">
+    <div class="card-title">Histórico de Registros</div>
+    <div style="overflow-x:auto">
+      <table class="camp-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Empresa</th>
+            <th>Campanha</th>
+            <th class="num">Alcance</th>
+            <th class="num">Impressões</th>
+            <th class="num">Cliques</th>
+            <th class="num">CTR</th>
+            <th class="num">Conv. Iniciadas</th>
+            <th class="num">Custo/Conv.</th>
+            <th class="num">CPM</th>
+            <th class="num">CPC</th>
+            <th class="num">Gasto</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="camp-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════ RELATÓRIO ═══════════════════════ -->
+<div class="page" id="page-relatorio">
+
+  <div class="sh">
+    <span class="sh-title">📄 Relatório de Produção</span>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-title">Filtrar Período</div>
+    <div class="form-row">
+      <div class="fg">
+        <label>Data Início</label>
+        <input type="date" id="rel-ini"/>
+      </div>
+      <div class="fg">
+        <label>Data Fim</label>
+        <input type="date" id="rel-fim"/>
+      </div>
+      <div class="fg" style="justify-content:flex-end">
+        <label>&nbsp;</label>
+        <button class="btn" onclick="gerarRel()">Gerar Relatório</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="rel-output"><div class="empty">Selecione o período e clique em Gerar Relatório.</div></div>
+</div>
+
+<!-- ═══════════════════════ MODAL VEÍCULO ═══════════════════════ -->
+<div class="modal-overlay" id="modal-veic">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">🚘 Cadastrar Veículo</span>
+      <button class="modal-close" onclick="fecharModal('modal-veic')">✕</button>
+    </div>
+
+    <div class="form-row">
+      <div class="fg" style="flex:2">
+        <label>Nome do Veículo (Marca / Modelo / Ano)<span class="required-mark">*</span></label>
+        <input type="text" id="v-nome" placeholder="Ex: Toyota Corolla XEi 2022"/>
+      </div>
+      <div class="fg">
+        <label>Placa</label>
+        <input type="text" id="v-placa" placeholder="ABC1D23" maxlength="7"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Valor (R$)<span class="required-mark">*</span></label>
+        <input type="text" id="v-valor" placeholder="85.000"/>
+      </div>
+      <div class="fg">
+        <label>Empresa<span class="required-mark">*</span></label>
+        <select id="v-empresa">
+          <option value="sem">MeR Seminovos</option>
+          <option value="rep">MeR Repasses</option>
+          <option value="loc">MeR Locadora</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Data de Entrada</label>
+        <input type="date" id="v-data"/>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:700;">Etapas de Produção</div>
+
+    <div class="g2" style="gap:10px;margin-bottom:12px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-foto" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">📷 Fotos realizadas<span class="required-mark">*</span></span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-video" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">🎥 Vídeo gravado<span class="required-mark">*</span></span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-boom" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">💻 Subido no Boom<span class="required-mark">*</span></span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-insta" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">📸 Postado Instagram</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-olx" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">🟠 Anúncio OLX</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-wm" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">🔵 WebMotors</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-icarros" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">🚗 iCarros</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);">
+        <input type="checkbox" id="v-camp" style="accent-color:var(--gold);width:16px;height:16px;"/> 
+        <span style="font-size:.82rem">📢 Campanha criada</span>
+      </label>
+    </div>
+
+    <div class="form-row">
+      <div class="fg" style="flex:2">
+        <label>Observações</label>
+        <input type="text" id="v-obs" placeholder="Ex: IPVA pago, revisado, único dono..."/>
+      </div>
+    </div>
+
+    <button class="btn" style="width:100%;margin-top:8px" onclick="salvarVeic()">Cadastrar Veículo</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAL CAMPANHA ═══════════════════════ -->
+<div class="modal-overlay" id="modal-camp">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">📊 Registrar Métricas</span>
+      <button class="modal-close" onclick="fecharModal('modal-camp')">✕</button>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Data<span class="required-mark">*</span></label>
+        <input type="date" id="c-data"/>
+      </div>
+      <div class="fg">
+        <label>Empresa<span class="required-mark">*</span></label>
+        <select id="c-empresa">
+          <option value="sem">MeR Seminovos</option>
+          <option value="rep">MeR Repasses</option>
+          <option value="loc">MeR Locadora</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="fg" style="flex:2">
+        <label>Nome da Campanha<span class="required-mark">*</span></label>
+        <input type="text" id="c-nome" placeholder="Ex: Campanha Leads Seminovos — Junho"/>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:700;">Métricas de Alcance</div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Alcance</label>
+        <input type="number" id="c-alcance" placeholder="0"/>
+      </div>
+      <div class="fg">
+        <label>Impressões</label>
+        <input type="number" id="c-impressoes" placeholder="0"/>
+      </div>
+      <div class="fg">
+        <label>Cliques</label>
+        <input type="number" id="c-cliques" placeholder="0"/>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div style="font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;font-weight:700;">Conversas & Custos</div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>Conv. Iniciadas</label>
+        <input type="number" id="c-conv" placeholder="0"/>
+      </div>
+      <div class="fg">
+        <label>Custo/Conversa (R$)</label>
+        <input type="number" id="c-cpc-conv" placeholder="0.00" step="0.01"/>
+      </div>
+      <div class="fg">
+        <label>Gasto Total (R$)</label>
+        <input type="number" id="c-gasto" placeholder="0.00" step="0.01"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="fg">
+        <label>CPM (R$)</label>
+        <input type="number" id="c-cpm" placeholder="0.00" step="0.01"/>
+      </div>
+      <div class="fg">
+        <label>CPC (R$)</label>
+        <input type="number" id="c-cpc" placeholder="0.00" step="0.01"/>
+      </div>
+      <div class="fg">
+        <label>CTR (%)</label>
+        <input type="number" id="c-ctr" placeholder="0.00" step="0.01"/>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="fg" style="flex:2">
+        <label>Observação / Otimização realizada</label>
+        <input type="text" id="c-obs" placeholder="Ex: Pausei anúncio X, CTR acima da média..."/>
+      </div>
+    </div>
+
+    <button class="btn" style="width:100%;margin-top:8px" onclick="salvarCamp()">Salvar Registro</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════ MODAL EDITAR VEÍCULO ═══════════════════════ -->
+<div class="modal-overlay" id="modal-edit-veic">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">✏️ Editar Veículo</span>
+      <button class="modal-close" onclick="fecharModal('modal-edit-veic')">✕</button>
+    </div>
+    <div id="edit-veic-content"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+// UTILIDADES
+// ══════════════════════════════════════════════
+const HOJE = () => new Date().toISOString().split('T')[0];
+const fmt = d => d ? new Date(d+'T12:00:00').toLocaleDateString('pt-BR') : '—';
+const num = v => parseFloat(v)||0;
+const moeda = v => 'R$ '+num(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+// RELÓGIO
+;(function tick(){
+  const n=new Date();
+  document.getElementById('hdata').textContent=n.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  document.getElementById('hclock').textContent=n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  setTimeout(tick,1000);
+})();
+
+// ══════════════════════════════════════════════
+// NAVEGAÇÃO
+// ══════════════════════════════════════════════
+function ir(pg,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('ativa'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('ativo'));
+  document.getElementById('page-'+pg).classList.add('ativa');
+  btn.classList.add('ativo');
+  if(pg==='veiculos') renderVeic();
+  if(pg==='campanhas') renderCamp();
+}
+
+// ══════════════════════════════════════════════
+// DIA A DIA
+// ══════════════════════════════════════════════
+let empresaDia='sem';
+
+const TASKS={
+  sem:[
+    {id:'s1',n:'Postar stories — Seminovos',t:'Social'},
+    {id:'s2',n:'Responder DMs e comentários (até 4h)',t:'Social'},
+    {id:'s3',n:'Verificar métricas do Meta Ads',t:'Tráfego'},
+    {id:'s4',n:'Otimizar campanhas ativas',t:'Tráfego'},
+    {id:'s5',n:'Atualizar anúncios OLX / WebMotors / iCarros',t:'Anúncios'},
+    {id:'s6',n:'Fotografar veículos novos',t:'Produção'},
+    {id:'s7',n:'Gravar vídeos dos veículos novos',t:'Produção'},
+    {id:'s8',n:'Subir veículos no Boom Sistema',t:'Produção'},
+    {id:'s9',n:'Publicar feed — Seminovos',t:'Social'},
+  ],
+  rep:[
+    {id:'r1',n:'Postar stories — Repasses',t:'Social'},
+    {id:'r2',n:'Publicar conteúdo de repasse',t:'Social'},
+    {id:'r3',n:'Verificar leads de repasse',t:'Leads'},
+    {id:'r4',n:'Atualizar anúncios de repasse',t:'Anúncios'},
+    {id:'r5',n:'Responder DMs — Repasses',t:'Social'},
+  ],
+  loc:[
+    {id:'l1',n:'Postar stories — Locadora',t:'Social'},
+    {id:'l2',n:'Verificar anúncios da Locadora',t:'Anúncios'},
+    {id:'l3',n:'Checar campanhas da Locadora',t:'Tráfego'},
+    {id:'l4',n:'Responder DMs — Locadora',t:'Social'},
+  ]
+};
+
+function getDone(){return JSON.parse(localStorage.getItem('mer-done-'+HOJE())||'{}');}
+function setDone(id,v){const d=getDone();d[id]=v;localStorage.setItem('mer-done-'+HOJE(),JSON.stringify(d));}
+
+function setEmpresaDia(e,btn){
+  empresaDia=e;
+  document.querySelectorAll('.empresa-tabs .etab').forEach(b=>{
+    b.classList.remove('ativo');
+  });
+  btn.classList.add('ativo');
+  renderDia();
+}
+
+function renderDia(){
+  const done=getDone();
+  const all=[...TASKS.sem,...TASKS.rep,...TASKS.loc];
+  const total=all.length;
+  const concl=all.filter(t=>done[t.id]).length;
+  const pct=total?Math.round(concl/total*100):0;
+  document.getElementById('prog-bar').style.width=pct+'%';
+  document.getElementById('prog-lbl').textContent=`${concl} de ${total} tarefas concluídas hoje (${pct}%)`;
+
+  const tasks=TASKS[empresaDia]||[];
+  const c=document.getElementById('checklist-container');
+  c.innerHTML='';
+  tasks.forEach(t=>{
+    const feita=!!done[t.id];
+    const div=document.createElement('div');
+    div.className='task-item'+(feita?' done':'');
+    div.innerHTML=`<input type="checkbox" ${feita?'checked':''} onchange="toggleTask('${t.id}',this.checked)"/><span class="tnome">${t.n}</span><span class="ttipo">${t.t}</span>`;
+    c.appendChild(div);
+  });
+}
+
+function toggleTask(id,v){setDone(id,v);renderDia();}
+function resetDia(){if(!confirm('Resetar todas as tarefas de hoje?'))return;localStorage.removeItem('mer-done-'+HOJE());renderDia();}
+
+function saveNotas(){localStorage.setItem('mer-notas-'+HOJE(),document.getElementById('notas-dia').value);}
+function saveMD(){
+  localStorage.setItem('mer-md-'+HOJE(),JSON.stringify({
+    leads:document.getElementById('m-leads').value,
+    msgs:document.getElementById('m-msgs').value,
+    stories:document.getElementById('m-stories').value,
+    anuncios:document.getElementById('m-anuncios').value,
+  }));
+}
+function loadDia(){
+  const n=localStorage.getItem('mer-notas-'+HOJE());
+  if(n)document.getElementById('notas-dia').value=n;
+  const m=JSON.parse(localStorage.getItem('mer-md-'+HOJE())||'{}');
+  if(m.leads)document.getElementById('m-leads').value=m.leads;
+  if(m.msgs)document.getElementById('m-msgs').value=m.msgs;
+  if(m.stories)document.getElementById('m-stories').value=m.stories;
+  if(m.anuncios)document.getElementById('m-anuncios').value=m.anuncios;
+}
+
+// ══════════════════════════════════════════════
+// VEÍCULOS — KANBAN
+// ══════════════════════════════════════════════
+let veics=JSON.parse(localStorage.getItem('mer-veics')||'[]');
+let empVeic='sem';
+
+const KANBAN_COLS=[
+  {id:'entrada',label:'📥 Entrada',cls:'s-entrada'},
+  {id:'fotos',label:'📷 Fotos',cls:'s-fotos'},
+  {id:'videos',label:'🎥 Vídeos',cls:'s-videos'},
+  {id:'boom',label:'💻 Boom',cls:'s-boom'},
+  {id:'instagram',label:'📸 Instagram',cls:'s-instagram'},
+  {id:'campanha',label:'📢 Campanha',cls:'s-campanha'},
+  {id:'vendido',label:'✅ Vendido',cls:'s-vendido'},
+];
+
+// Determina estágio do kanban com base nas etapas concluídas
+function getEstagio(v){
+  if(v.vendido) return 'vendido';
+  if(v.campanha) return 'campanha';
+  if(v.instagram) return 'instagram';
+  if(v.boom) return 'boom';
+  if(v.video) return 'videos';
+  if(v.foto) return 'fotos';
+  return 'entrada';
+}
+
+function setEmpresaVeic(e,btn){
+  empVeic=e;
+  document.querySelectorAll('#page-veiculos .empresa-tabs .etab').forEach(b=>b.classList.remove('ativo'));
+  btn.classList.add('ativo');
+  renderVeic();
+}
+
+function saveVeics(){localStorage.setItem('mer-veics',JSON.stringify(veics));}
+
+function renderVeic(){
+  const filtrados=empVeic==='all'?veics:veics.filter(v=>v.empresa===empVeic);
+  const ativos=filtrados.filter(v=>!v.vendido);
+
+  document.getElementById('v-estoque').textContent=ativos.length;
+  document.getElementById('v-fotos').textContent=filtrados.filter(v=>v.foto).length;
+  document.getElementById('v-videos').textContent=filtrados.filter(v=>v.video).length;
+  document.getElementById('v-boom').textContent=filtrados.filter(v=>v.boom).length;
+
+  const board=document.getElementById('kanban-board');
+  board.innerHTML='';
+
+  KANBAN_COLS.forEach(col=>{
+    const cards=filtrados.filter(v=>getEstagio(v)===col.id);
+    const colEl=document.createElement('div');
+    colEl.className='k-col';
+    colEl.innerHTML=`
+      <div class="k-col-header">
+        <span class="k-col-title" style="color:${getColColor(col.id)}">${col.label}</span>
+        <span class="k-count">${cards.length}</span>
+      </div>
+    `;
+
+    if(cards.length===0){
+      const empty=document.createElement('div');
+      empty.style.cssText='text-align:center;color:var(--muted2);font-size:.72rem;padding:16px 0;';
+      empty.textContent='Nenhum veículo';
+      colEl.appendChild(empty);
+    }
+
+    cards.forEach(v=>{
+      const card=document.createElement('div');
+      card.className=`k-card ${v.empresa}`;
+      card.innerHTML=`
+        <div class="k-nome">${v.nome}</div>
+        <div class="k-placa">${v.placa||'Sem placa'} · <span class="badge badge-${v.empresa}">${nomeEmp(v.empresa)}</span></div>
+        <div class="k-valor">R$ ${v.valor}</div>
+        <div class="k-actions">
+          <button class="btn btn-xs" onclick="editarVeic(${v.id})">✏️</button>
+          ${!v.vendido?`<button class="btn btn-xs btn-out" onclick="marcarVendido(${v.id})">Vendido</button>`:''}
+          <button class="btn btn-xs btn-danger" onclick="deletarVeic(${v.id})">✕</button>
+        </div>
+      `;
+      colEl.appendChild(card);
+    });
+
+    board.appendChild(colEl);
+  });
+}
+
+function getColColor(id){
+  const m={entrada:'var(--blue)',fotos:'var(--gold)',videos:'var(--rep)',boom:'#a78bfa',instagram:'#ec4899',campanha:'var(--green)',vendido:'var(--muted)'};
+  return m[id]||'var(--text)';
+}
+
+function nomeEmp(e){return{sem:'Seminovos',rep:'Repasses',loc:'Locadora'}[e]||e;}
+
+function abrirModalVeic(){
+  document.getElementById('v-data').value=HOJE();
+  ['v-nome','v-placa','v-valor','v-obs'].forEach(i=>document.getElementById(i).value='');
+  ['v-foto','v-video','v-boom','v-insta','v-olx','v-wm','v-icarros','v-camp'].forEach(i=>document.getElementById(i).checked=false);
+  document.getElementById('modal-veic').classList.add('aberto');
+}
+
+function salvarVeic(){
+  const nome=document.getElementById('v-nome').value.trim();
+  const valor=document.getElementById('v-valor').value.trim();
+  const foto=document.getElementById('v-foto').checked;
+  const video=document.getElementById('v-video').checked;
+  const boom=document.getElementById('v-boom').checked;
+
+  if(!nome){alert('Informe o nome do veículo.');return;}
+  if(!valor){alert('Informe o valor do veículo.');return;}
+  if(!foto){alert('Confirme que as fotos foram realizadas (campo obrigatório).');return;}
+  if(!video){alert('Confirme que o vídeo foi gravado (campo obrigatório).');return;}
+  if(!boom){alert('Confirme que foi subido no Boom Sistema (campo obrigatório).');return;}
+
+  veics.unshift({
+    id:Date.now(),
+    nome,placa:document.getElementById('v-placa').value.trim().toUpperCase(),
+    valor,empresa:document.getElementById('v-empresa').value,
+    data:document.getElementById('v-data').value,
+    obs:document.getElementById('v-obs').value.trim(),
+    foto,video,boom,
+    instagram:document.getElementById('v-insta').checked,
+    olx:document.getElementById('v-olx').checked,
+    webmotors:document.getElementById('v-wm').checked,
+    icarros:document.getElementById('v-icarros').checked,
+    campanha:document.getElementById('v-camp').checked,
+    vendido:false,
+  });
+  saveVeics();
+  fecharModal('modal-veic');
+  renderVeic();
+}
+
+function marcarVendido(id){
+  const v=veics.find(x=>x.id===id);
+  if(!v)return;
+  if(!confirm(`Marcar "${v.nome}" como VENDIDO?`))return;
+  v.vendido=true;
+  v.dataVenda=HOJE();
+  saveVeics();renderVeic();
+}
+
+function deletarVeic(id){
+  if(!confirm('Excluir este veículo?'))return;
+  veics=veics.filter(x=>x.id!==id);
+  saveVeics();renderVeic();
+}
+
+function editarVeic(id){
+  const v=veics.find(x=>x.id===id);
+  if(!v)return;
+  const steps=[
+    {k:'foto',l:'📷 Fotos realizadas',req:true},
+    {k:'video',l:'🎥 Vídeo gravado',req:true},
+    {k:'boom',l:'💻 Subido no Boom',req:true},
+    {k:'instagram',l:'📸 Postado Instagram'},
+    {k:'olx',l:'🟠 Anúncio OLX'},
+    {k:'webmotors',l:'🔵 WebMotors'},
+    {k:'icarros',l:'🚗 iCarros'},
+    {k:'campanha',l:'📢 Campanha criada'},
+    {k:'vendido',l:'✅ Vendido'},
+  ];
+  const stepsHtml=steps.map(s=>`
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);padding:10px;border-radius:8px;border:1px solid var(--border);margin-bottom:6px;">
+      <input type="checkbox" id="ev-${s.k}" ${v[s.k]?'checked':''} style="accent-color:var(--gold);width:16px;height:16px;"/>
+      <span style="font-size:.82rem">${s.l}${s.req?'<span class="required-mark">*</span>':''}</span>
+    </label>
+  `).join('');
+
+  document.getElementById('edit-veic-content').innerHTML=`
+    <div class="form-row">
+      <div class="fg" style="flex:2"><label>Nome</label><input type="text" id="ev-nome" value="${v.nome}"/></div>
+      <div class="fg"><label>Placa</label><input type="text" id="ev-placa" value="${v.placa||''}"/></div>
+    </div>
+    <div class="form-row">
+      <div class="fg"><label>Valor</label><input type="text" id="ev-valor" value="${v.valor}"/></div>
+      <div class="fg"><label>Empresa</label>
+        <select id="ev-empresa">
+          <option value="sem" ${v.empresa==='sem'?'selected':''}>MeR Seminovos</option>
+          <option value="rep" ${v.empresa==='rep'?'selected':''}>MeR Repasses</option>
+          <option value="loc" ${v.empresa==='loc'?'selected':''}>MeR Locadora</option>
+        </select>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-size:.72rem;color:var(--gold);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:700;">Etapas de Produção</div>
+    ${stepsHtml}
+    <div class="form-row mt16">
+      <div class="fg" style="flex:2"><label>Observações</label><input type="text" id="ev-obs" value="${v.obs||''}"/></div>
+    </div>
+    <button class="btn" style="width:100%;margin-top:8px" onclick="salvarEditVeic(${id})">Salvar Alterações</button>
+  `;
+  document.getElementById('modal-edit-veic').classList.add('aberto');
+}
+
+function salvarEditVeic(id){
+  const v=veics.find(x=>x.id===id);
+  if(!v)return;
+  const foto=document.getElementById('ev-foto').checked;
+  const video=document.getElementById('ev-video').checked;
+  const boom=document.getElementById('ev-boom').checked;
+  if(!foto){alert('Fotos é obrigatório.');return;}
+  if(!video){alert('Vídeo é obrigatório.');return;}
+  if(!boom){alert('Boom Sistema é obrigatório.');return;}
+
+  v.nome=document.getElementById('ev-nome').value.trim()||v.nome;
+  v.placa=document.getElementById('ev-placa').value.trim().toUpperCase();
+  v.valor=document.getElementById('ev-valor').value.trim()||v.valor;
+  v.empresa=document.getElementById('ev-empresa').value;
+  v.obs=document.getElementById('ev-obs').value.trim();
+  v.foto=foto;v.video=video;v.boom=boom;
+  v.instagram=document.getElementById('ev-instagram').checked;
+  v.olx=document.getElementById('ev-olx').checked;
+  v.webmotors=document.getElementById('ev-webmotors').checked;
+  v.icarros=document.getElementById('ev-icarros').checked;
+  v.campanha=document.getElementById('ev-campanha').checked;
+  v.vendido=document.getElementById('ev-vendido').checked;
+  if(v.vendido&&!v.dataVenda)v.dataVenda=HOJE();
+
+  saveVeics();fecharModal('modal-edit-veic');renderVeic();
+}
+
+// ══════════════════════════════════════════════
+// CAMPANHAS
+// ══════════════════════════════════════════════
+let camps=JSON.parse(localStorage.getItem('mer-camps')||'[]');
+let empCamp='sem';
+
+function setEmpresaCamp(e,btn){
+  empCamp=e;
+  document.querySelectorAll('#page-campanhas .empresa-tabs .etab').forEach(b=>b.classList.remove('ativo'));
