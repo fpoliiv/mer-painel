@@ -65,6 +65,23 @@
   .sub-tab.active { background: var(--surface-3); color: var(--gold); border-color: var(--gold); }
 
   main { padding: 24px; max-width: 1600px; margin: 0 auto; }
+  @media (min-width: 1280px) {
+    main { padding: 32px 40px; }
+    header { padding: 16px 40px; }
+    nav.tabs-main { padding: 14px 40px; }
+    .page-title { font-size: 30px; }
+    .metric-value { font-size: 36px; }
+  }
+  @media (min-width: 1600px) {
+    main { padding: 40px 56px; }
+  }
+  /* Sticky sub-tabs (Dia a Dia) */
+  .sub-tabs.sticky {
+    position: sticky; top: 64px; z-index: 30;
+    background: var(--bg); padding: 12px 0; margin-top: -4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .empresa-block { scroll-margin-top: 140px; }
   .page { display: none; }
   .page.active { display: block; }
 
@@ -239,7 +256,7 @@
       </div>
     </div>
 
-    <div class="sub-tabs" id="dia-empresa-tabs"></div>
+    <div class="sub-tabs sticky" id="dia-empresa-tabs"></div>
 
     <div class="section">
       <div class="section-head"><h2>Checklist</h2></div>
@@ -535,6 +552,7 @@ function renderDia() {
   empresasToShow.forEach(emp => {
     const block = document.createElement('div');
     block.className = 'empresa-block card';
+    block.id = 'block-' + emp.id;
     block.innerHTML = `<h3>${emp.nome}</h3>`;
     const tarefas = TAREFAS[emp.id];
     if (!dia.tarefas[emp.id]) dia.tarefas[emp.id] = new Array(tarefas.length).fill(false);
@@ -961,7 +979,10 @@ document.querySelectorAll('[data-close]').forEach(b => {
 });
 
 // ============== INIT ==============
-buildEmpresaTabs('dia-empresa-tabs', false, 'diaEmpresa', () => renderDia());
+buildEmpresaTabs('dia-empresa-tabs', false, 'diaEmpresa', (id) => {
+  const el = document.getElementById('block-' + id);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 buildEmpresaTabs('veic-empresa-tabs', true, 'veicEmpresa', () => renderVeiculos());
 buildEmpresaTabs('camp-empresa-tabs', true, 'campEmpresa', () => renderCampanhas());
 
