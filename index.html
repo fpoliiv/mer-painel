@@ -113,24 +113,30 @@
   .btn-danger:hover { background: var(--danger); color: white; }
   .btn-sm { padding: 6px 12px; font-size: 11px; }
 
-  /* Checklist */
+  /* Checklist - Correção Aplicada Aqui */
   .empresa-block { margin-bottom: 24px; }
   .empresa-block h3 { color: var(--text); margin-bottom: 16px; font-size: 16px; display: flex; align-items: center; gap: 8px;}
   .empresa-block h3::before { content: ''; width: 8px; height: 8px; background: var(--gold); border-radius: 50%; display: block; }
+  
   .check-item {
     display: flex; align-items: center; gap: 12px; padding: 12px 16px;
     background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 8px;
-    cursor: pointer; transition: all .2s;
+    cursor: pointer; transition: all .2s; user-select: none;
   }
   .check-item:hover { background: var(--surface-3); border-color: var(--muted); }
   .check-item.done { opacity: .5; background: transparent; border-color: transparent;}
   .check-item.done .check-label { text-decoration: line-through; color: var(--muted); }
+  
   .check-box {
     width: 22px; height: 22px; border: 2px solid var(--muted); border-radius: 6px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center; transition: all .2s;
   }
   .check-item.done .check-box { background: var(--gold); border-color: var(--gold); }
-  .check-box::after { content: ''; width: 10px; height: 5px; border-left: 2px solid #000; border-bottom: 2px solid #000; transform: rotate(-45deg) translate(1px, -1px); opacity: 0; }
+  .check-box::after {
+    content: ''; display: block; width: 6px; height: 11px;
+    border: solid #000; border-width: 0 2px 2px 0;
+    transform: rotate(45deg); margin-top: -3px; opacity: 0;
+  }
   .check-item.done .check-box::after { opacity: 1; }
   .check-label { flex: 1; font-size: 14px; font-weight: 500;}
 
@@ -233,6 +239,7 @@
 </nav>
 
 <main>
+  <!-- DIA A DIA -->
   <section class="page active" id="page-dia">
     <h1 class="page-title">Rotina Diária</h1>
     <p class="page-sub">Checklist operacional e metas de tráfego/orgânico.</p>
@@ -269,6 +276,7 @@
     </div>
   </section>
 
+  <!-- VEÍCULOS -->
   <section class="page" id="page-veiculos">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom: 6px;">
         <h1 class="page-title" style="margin:0;">Funil de Veículos</h1>
@@ -282,6 +290,7 @@
     <div class="kanban" id="kanban-board"></div>
   </section>
 
+  <!-- CAMPANHAS -->
   <section class="page" id="page-campanhas">
     <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; margin-bottom: 6px;">
         <h1 class="page-title" style="margin:0;">Gestão de Tráfego</h1>
@@ -303,6 +312,7 @@
     </div>
   </section>
 
+  <!-- RELATÓRIO -->
   <section class="page" id="page-relatorio">
     <h1 class="page-title">Relatórios & Exportação</h1>
     <p class="page-sub">Consolidado para prestação de contas mensal.</p>
@@ -334,6 +344,7 @@
   </section>
 </main>
 
+<!-- MODAL VEICULO -->
 <div class="modal-bg" id="modal-veiculo">
   <div class="modal">
     <div class="modal-head">
@@ -378,6 +389,7 @@
   </div>
 </div>
 
+<!-- MODAL CAMPANHA -->
 <div class="modal-bg" id="modal-campanha">
   <div class="modal">
     <div class="modal-head">
@@ -492,10 +504,10 @@ const COLUNAS = [
 // ============== STORAGE ==============
 const LS = {
   get(k, def) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : def; } catch { return def; } },
-  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) { console.error('Erro ao salvar:', e); } },
 };
 
-const todayStr = () => new Date().toLocaleDateString('en-CA'); // Formato YYYY-MM-DD seguro
+const todayStr = () => new Date().toLocaleDateString('en-CA');
 
 function getDia(date = todayStr()) {
   return LS.get('mer_dia_' + date, {
@@ -550,13 +562,30 @@ function buildEmpresaTabs(containerId, includeAll, currentKey, onChange) {
   });
 }
 
-// ============== DIA A DIA ==============
+// ============== DIA A DIA & PROGRESSO ==============
+
+function updateProgress() {
+  const dia = getDia();
+  let total = 0, done = 0;
+  EMPRESAS.forEach(emp => {
+    const ts = TAREFAS[emp.id];
+    total += ts.length;
+    const arr = dia.tarefas[emp.id] || [];
+    // Slice impede que conflitos de cache antigo afetem a conta
+    done += arr.slice(0, ts.length).filter(Boolean).length;
+  });
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `${done}/${total} (${pct}%)`;
+}
+
 function renderDia() {
   const dia = getDia();
   const cont = document.getElementById('checklist-container');
   cont.innerHTML = '';
   
   const empToShow = EMPRESAS.filter(e => state.diaEmpresa === 'all' || e.id === state.diaEmpresa);
+  let needsSave = false; // Garante a sincronia entre a memória e a tela
   
   empToShow.forEach(emp => {
     const block = document.createElement('div');
@@ -564,34 +593,43 @@ function renderDia() {
     block.id = 'block-' + emp.id;
     block.innerHTML = `<h3>${emp.nome}</h3>`;
     const tarefas = TAREFAS[emp.id];
-    if (!dia.tarefas[emp.id]) dia.tarefas[emp.id] = new Array(tarefas.length).fill(false);
+    
+    // Tratamento de segurança: cria o array no banco de dados se não existir
+    if (!dia.tarefas[emp.id]) { dia.tarefas[emp.id] = new Array(tarefas.length).fill(false); needsSave = true; }
+    while (dia.tarefas[emp.id].length < tarefas.length) { dia.tarefas[emp.id].push(false); needsSave = true; }
     
     tarefas.forEach((t, i) => {
       const item = document.createElement('div');
       item.className = 'check-item' + (dia.tarefas[emp.id][i] ? ' done' : '');
       item.innerHTML = `<div class="check-box"></div><div class="check-label">${t}</div>`;
+      
+      // Nova Lógica de Clique Desacoplada (Não destrói o DOM)
       item.addEventListener('click', () => {
         const d = getDia();
-        d.tarefas[emp.id][i] = !d.tarefas[emp.id][i];
+        if (!d.tarefas[emp.id]) d.tarefas[emp.id] = new Array(tarefas.length).fill(false);
+        while (d.tarefas[emp.id].length < tarefas.length) d.tarefas[emp.id].push(false);
+        
+        d.tarefas[emp.id][i] = !d.tarefas[emp.id][i]; // Inverte o check
         saveDia(d);
-        renderDia();
+        
+        // Atualiza visualmente de forma instantânea sem recarregar tudo
+        if(d.tarefas[emp.id][i]) {
+            item.classList.add('done');
+        } else {
+            item.classList.remove('done');
+        }
+        
+        updateProgress();
       });
+      
       block.appendChild(item);
     });
     cont.appendChild(block);
   });
 
-  // Progresso
-  let total = 0, done = 0;
-  EMPRESAS.forEach(emp => {
-    const ts = TAREFAS[emp.id];
-    total += ts.length;
-    const arr = dia.tarefas[emp.id] || [];
-    done += arr.filter(Boolean).length;
-  });
-  const pct = total ? Math.round(done/total*100) : 0;
-  document.getElementById('prog-fill').style.width = pct + '%';
-  document.getElementById('prog-text').textContent = `${done}/${total} (${pct}%)`;
+  if (needsSave) saveDia(dia);
+  
+  updateProgress(); // Chama o progresso na inicialização
 
   // Metricas
   const mc = document.getElementById('metricas-rapidas');
@@ -606,7 +644,7 @@ function renderDia() {
     mc.appendChild(card);
   });
   mc.querySelectorAll('.metric-input').forEach(inp => {
-    inp.addEventListener('change', () => { // Usando change em vez de input para não engasgar
+    inp.addEventListener('change', () => { 
       const d = getDia();
       d.metricas[inp.dataset.metric] = parseInt(inp.value) || 0;
       saveDia(d);
@@ -715,7 +753,6 @@ function renderVeiculos() {
         const alvo = allVeic.find(x => x.id === vId);
         if(!alvo) return;
         
-        // Cascata de atualização baseada na coluna onde foi solto
         const is = col.id;
         alvo.vendido = (is === 'vendido') ? (alvo.vendido || new Date().toISOString()) : null;
         if(is === 'entrada') { alvo.fotos=false; alvo.video=false; alvo.boom=false; alvo.instagram=false; alvo.campanha=false; }
@@ -771,10 +808,9 @@ function abrirModalVeic(id) {
     document.getElementById('v-id').value = v.id;
     document.getElementById('v-nome').value = v.nome || '';
     
-    // Formata o valor antes de colocar no input
     const inputValor = document.getElementById('v-valor');
     inputValor.value = v.valor ? (v.valor).toFixed(2).replace('.', '') : '';
-    mascaraMoeda({target: inputValor, value: inputValor.value}); // Simula o input para engatilhar a mascara
+    mascaraMoeda({target: inputValor, value: inputValor.value});
     
     document.getElementById('v-placa').value = v.placa || '';
     document.getElementById('v-empresa').value = v.empresa || 'seminovos';
@@ -801,7 +837,7 @@ document.getElementById('btn-novo-veiculo').addEventListener('click', () => abri
 document.getElementById('btn-salvar-veiculo').addEventListener('click', () => {
   const nome = document.getElementById('v-nome').value.trim();
   const valorStr = document.getElementById('v-valor').value;
-  const valor = desmascararMoeda(valorStr); // Correção Principal Aplicada Aqui!
+  const valor = desmascararMoeda(valorStr);
   
   if (!nome) { showToast('⚠️ Informe o nome do veículo.'); return; }
   if (valor === 0 && valorStr === '') { showToast('⚠️ Informe o valor.'); return; }
